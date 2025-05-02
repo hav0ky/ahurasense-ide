@@ -26,7 +26,7 @@ export function Builder() {
   const location = useLocation();
   const { prompt } = location.state as { prompt: string };
   const [userPrompt, setPrompt] = useState("");
-  const [llmMessages, setLlmMessages] = useState<{role: "user" | "assistant", content: string;}[]>([]);
+  const [llmMessages, setLlmMessages] = useState<{ role: "user" | "assistant", content: string; }[]>([]);
   const [loading, setLoading] = useState(false);
   const [templateSet, setTemplateSet] = useState(false);
   const webcontainer = useWebContainer();
@@ -34,7 +34,9 @@ export function Builder() {
   const [currentStep, setCurrentStep] = useState(1);
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
-  
+  const [showSteps, setShowSteps] = useState(true);
+  const [compactSteps, setCompactSteps] = useState(true);
+
   const [steps, setSteps] = useState<Step[]>([]);
 
   const [files, setFiles] = useState<FileItem[]>([]);
@@ -42,19 +44,19 @@ export function Builder() {
   useEffect(() => {
     let originalFiles = [...files];
     let updateHappened = false;
-    steps.filter(({status}) => status === "pending").map(step => {
+    steps.filter(({ status }) => status === "pending").map(step => {
       updateHappened = true;
       if (step?.type === StepType.CreateFile) {
         let parsedPath = step.path?.split("/") ?? []; // ["src", "components", "App.tsx"]
         let currentFileStructure = [...originalFiles]; // {}
         let finalAnswerRef = currentFileStructure;
-  
+
         let currentFolder = ""
-        while(parsedPath.length) {
-          currentFolder =  `${currentFolder}/${parsedPath[0]}`;
+        while (parsedPath.length) {
+          currentFolder = `${currentFolder}/${parsedPath[0]}`;
           let currentFolderName = parsedPath[0];
           parsedPath = parsedPath.slice(1);
-  
+
           if (!parsedPath.length) {
             // final file
             let file = currentFileStructure.find(x => x.path === currentFolder)
@@ -80,7 +82,7 @@ export function Builder() {
                 children: []
               })
             }
-  
+
             currentFileStructure = currentFileStructure.find(x => x.path === currentFolder)!.children!;
           }
         }
@@ -97,7 +99,7 @@ export function Builder() {
           ...s,
           status: "completed"
         }
-        
+
       }))
     }
     console.log(files);
@@ -106,15 +108,15 @@ export function Builder() {
   useEffect(() => {
     const createMountStructure = (files: FileItem[]): Record<string, any> => {
       const mountStructure: Record<string, any> = {};
-  
-      const processFile = (file: FileItem, isRootFolder: boolean) => {  
+
+      const processFile = (file: FileItem, isRootFolder: boolean) => {
         if (file.type === 'folder') {
           // For folders, create a directory entry
           mountStructure[file.name] = {
-            directory: file.children ? 
+            directory: file.children ?
               Object.fromEntries(
                 file.children.map(child => [child.name, processFile(child, false)])
-              ) 
+              )
               : {}
           };
         } else if (file.type === 'file') {
@@ -133,18 +135,18 @@ export function Builder() {
             };
           }
         }
-  
+
         return mountStructure[file.name];
       };
-  
+
       // Process each top-level file/folder
       files.forEach(file => processFile(file, true));
-  
+
       return mountStructure;
     };
-  
+
     const mountStructure = createMountStructure(files);
-  
+
     // Mount the structure if WebContainer is available
     console.log(mountStructure);
     webcontainer?.mount(mountStructure);
@@ -155,8 +157,8 @@ export function Builder() {
       prompt: prompt.trim()
     });
     setTemplateSet(true);
-    
-    const {prompts, uiPrompts} = response.data;
+
+    const { prompts, uiPrompts } = response.data;
 
     setSteps(parseXml(uiPrompts[0]).map((x: Step) => ({
       ...x,
@@ -177,7 +179,7 @@ export function Builder() {
     setSteps(s => {
       const maxId = s.reduce((max, step) => Math.max(max, step.id), 0);
       return [
-        ...s, 
+        ...s,
         ...parseXml(stepsResponse.data.response).map((x, index) => ({
           ...x,
           id: maxId + index + 1, // Ensure IDs are unique
@@ -191,7 +193,7 @@ export function Builder() {
       content
     })));
 
-    setLlmMessages(x => [...x, {role: "assistant", content: stepsResponse.data.response}])
+    setLlmMessages(x => [...x, { role: "assistant", content: stepsResponse.data.response }])
   }
 
   useEffect(() => {
@@ -207,13 +209,27 @@ export function Builder() {
             <p className="text-sm text-gray-400 mt-1 max-w-lg truncate">Prompt: {prompt}</p>
           </div>
           <div className="flex items-center space-x-4">
+            <button 
+              onClick={() => setCompactSteps(!compactSteps)}
+              className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
+              title={compactSteps ? "Show detailed steps" : "Show compact steps"}
+            >
+              {compactSteps ? "Detailed Steps" : "Compact Steps"}
+            </button>
+            <button 
+              onClick={() => setShowSteps(!showSteps)}
+              className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
+              title={showSteps ? "Hide build steps" : "Show build steps"}
+            >
+              {showSteps ? "Hide Steps" : "Show Steps"}
+            </button>
             <span className="text-xs text-gray-400">
-              {webcontainer ? 
+              {webcontainer ?
                 <span className="flex items-center text-emerald-400">
                   <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>
                   Environment Ready
-                </span> 
-                : 
+                </span>
+                :
                 <span className="flex items-center text-yellow-400">
                   <span className="inline-block h-2 w-2 rounded-full bg-yellow-400 mr-2 animate-pulse"></span>
                   Initializing...
@@ -223,101 +239,104 @@ export function Builder() {
           </div>
         </div>
       </header>
-      
+
       <div className="flex-1 overflow-hidden max-w-screen-2xl mx-auto w-full">
-        <div className="h-full grid grid-cols-12 gap-6 p-6">
+        <div className={`h-full grid ${showSteps ? 'grid-cols-12' : 'grid-cols-10'} gap-6 p-6`}>
           {/* Left sidebar - Steps */}
-          <div className="col-span-3 space-y-4">
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl overflow-hidden h-[calc(75vh-2rem)]">
-              <div className="p-4 border-b border-gray-700/50">
-                <h2 className="text-lg font-semibold text-gray-100 flex items-center">
-                  <span className="bg-indigo-500/20 text-indigo-400 p-1 rounded mr-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M8 6h10"></path>
-                      <path d="M6 12h9"></path>
-                      <path d="M4 18h8"></path>
-                    </svg>
-                  </span>
-                  Build Steps
-                </h2>
-              </div>
-              
-              <div className="overflow-y-auto h-[calc(100%-4rem)]">
-                <StepsList
-                  steps={steps}
-                  currentStep={currentStep}
-                  onStepClick={setCurrentStep}
-                />
-              </div>
-            </div>
-
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl p-4">
-              {(loading || !templateSet) ? (
-                <div className="flex items-center justify-center py-6">
-                  <Loader />
+          {showSteps && (
+            <div className="col-span-3 space-y-4">
+              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl overflow-hidden h-[calc(75vh-2rem)]">
+                <div className="p-3 border-b border-gray-700/50 flex items-center justify-between">
+                  <h2 className="text-lg font-semibold text-gray-100 flex items-center">
+                    <span className="bg-indigo-500/20 text-indigo-400 p-1 rounded mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M8 6h10"></path>
+                        <path d="M6 12h9"></path>
+                        <path d="M4 18h8"></path>
+                      </svg>
+                    </span>
+                    Build Steps
+                  </h2>
                 </div>
-              ) : (
-                <div className="space-y-3">
-                  <div className="flex items-center">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400 mr-2">
-                      <path d="M12 2v20"></path>
-                      <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
-                    </svg>
-                    <h3 className="text-sm font-medium text-gray-200">Additional Instructions</h3>
-                  </div>
-                  <textarea 
-                    value={userPrompt} 
-                    onChange={(e) => setPrompt(e.target.value)}
-                    className="w-full h-20 bg-gray-900/50 text-gray-200 border border-gray-700/50 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
-                    placeholder="Add more instructions or modifications..."
+
+                <div className="overflow-y-auto h-[calc(100%-3.75rem)]">
+                  <StepsList
+                    steps={steps}
+                    currentStep={currentStep}
+                    onStepClick={setCurrentStep}
+                    compact={compactSteps}
                   />
-                  <button 
-                    onClick={async () => {
-                      const newMessage = {
-                        role: "user" as "user",
-                        content: userPrompt
-                      };
-
-                      setLoading(true);
-                      const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
-                        messages: [...llmMessages, newMessage]
-                      });
-                      setLoading(false);
-
-                      setLlmMessages(x => [...x, newMessage]);
-                      setLlmMessages(x => [...x, {
-                        role: "assistant",
-                        content: stepsResponse.data.response
-                      }]);
-                      
-                      setSteps(s => {
-                        const maxId = s.reduce((max, step) => Math.max(max, step.id), 0);
-                        return [
-                          ...s, 
-                          ...parseXml(stepsResponse.data.response).map((x, index) => ({
-                            ...x,
-                            id: maxId + index + 1, // Ensure IDs are unique
-                            status: "pending" as "pending"
-                          }))
-                        ];
-                      });
-                      setPrompt("");
-                    }} 
-                    className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center space-x-2 transition-all"
-                  >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="m22 2-7 20-4-9-9-4Z"></path>
-                      <path d="M22 2 11 13"></path>
-                    </svg>
-                    <span>Send Instructions</span>
-                  </button>
                 </div>
-              )}
+              </div>
+
+              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl p-4">
+                {(loading || !templateSet) ? (
+                  <div className="flex items-center justify-center py-6">
+                    <Loader />
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    <div className="flex items-center">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400 mr-2">
+                        <path d="M12 2v20"></path>
+                        <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
+                      </svg>
+                      <h3 className="text-sm font-medium text-gray-200">Additional Instructions</h3>
+                    </div>
+                    <textarea
+                      value={userPrompt}
+                      onChange={(e) => setPrompt(e.target.value)}
+                      className="w-full h-20 bg-gray-900/50 text-gray-200 border border-gray-700/50 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                      placeholder="Add more instructions or modifications..."
+                    />
+                    <button
+                      onClick={async () => {
+                        const newMessage = {
+                          role: "user" as "user",
+                          content: userPrompt
+                        };
+
+                        setLoading(true);
+                        const stepsResponse = await axios.post(`${BACKEND_URL}/chat`, {
+                          messages: [...llmMessages, newMessage]
+                        });
+                        setLoading(false);
+
+                        setLlmMessages(x => [...x, newMessage]);
+                        setLlmMessages(x => [...x, {
+                          role: "assistant",
+                          content: stepsResponse.data.response
+                        }]);
+
+                        setSteps(s => {
+                          const maxId = s.reduce((max, step) => Math.max(max, step.id), 0);
+                          return [
+                            ...s,
+                            ...parseXml(stepsResponse.data.response).map((x, index) => ({
+                              ...x,
+                              id: maxId + index + 1, // Ensure IDs are unique
+                              status: "pending" as "pending"
+                            }))
+                          ];
+                        });
+                        setPrompt("");
+                      }}
+                      className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center space-x-2 transition-all"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="m22 2-7 20-4-9-9-4Z"></path>
+                        <path d="M22 2 11 13"></path>
+                      </svg>
+                      <span>Send Instructions</span>
+                    </button>
+                  </div>
+                )}
+              </div>
             </div>
-          </div>
-          
+          )}
+
           {/* Middle - File Explorer */}
-          <div className="col-span-2">
+          <div className={showSteps ? "col-span-2" : "col-span-3"}>
             <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl h-[calc(100vh-8rem)] overflow-hidden">
               <div className="p-4 border-b border-gray-700/50">
                 <h2 className="text-lg font-semibold text-gray-100 flex items-center">
@@ -338,16 +357,16 @@ export function Builder() {
                 </h2>
               </div>
               <div className="overflow-y-auto h-[calc(100%-4rem)]">
-                <FileExplorer 
-                  files={files} 
+                <FileExplorer
+                  files={files}
                   onFileSelect={setSelectedFile}
                 />
               </div>
             </div>
           </div>
-          
+
           {/* Right - Code Editor/Preview */}
-          <div className="col-span-7">
+          <div className={showSteps ? "col-span-7" : "col-span-7"}>
             <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl h-[calc(100vh-8rem)] overflow-hidden flex flex-col">
               <div className="p-4 border-b border-gray-700/50">
                 <TabView activeTab={activeTab} onTabChange={setActiveTab} />
@@ -356,7 +375,7 @@ export function Builder() {
                 {activeTab === 'code' ? (
                   <CodeEditor file={selectedFile} />
                 ) : (
-                  <PreviewFrame webContainer={webcontainer} files={files} />
+                  <PreviewFrame webContainer={webcontainer!} files={files} />
                 )}
               </div>
             </div>
