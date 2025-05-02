@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, memo, useMemo } from 'react';
 import { Folder, FileCode, ChevronRight, ChevronDown, FileJson, FileText, FileType, Image } from 'lucide-react';
 import { FileItem } from '../types';
 import { ScrollArea } from './ui/scroll-area';
@@ -44,7 +44,7 @@ const getFileIcon = (fileName: string) => {
   }
 };
 
-function FileNode({ item, depth, onFileClick, isSelected = false }: FileNodeProps) {
+const FileNode = memo(function FileNode({ item, depth, onFileClick, isSelected = false }: FileNodeProps) {
   const [isExpanded, setIsExpanded] = useState(true); // Default expanded for better UX
 
   const handleClick = () => {
@@ -65,10 +65,10 @@ function FileNode({ item, depth, onFileClick, isSelected = false }: FileNodeProp
     <div className="select-none">
       <div
         className={cn(
-          "flex items-center gap-2 py-1.5 px-2 hover:bg-gray-800/50 rounded-md cursor-pointer transition-colors",
+          "flex items-center gap-1.5 md:gap-2 py-1 md:py-1.5 px-1.5 md:px-2 hover:bg-gray-800/50 rounded-md cursor-pointer transition-colors text-xs md:text-sm",
           isSelected && getBackgroundStyle()
         )}
-        style={{ paddingLeft: `${depth * 1}rem` }}
+        style={{ paddingLeft: `${depth * 0.75}rem` }}
         onClick={handleClick}
       >
         <div className="flex items-center gap-1.5 min-w-6">
@@ -123,9 +123,9 @@ function FileNode({ item, depth, onFileClick, isSelected = false }: FileNodeProp
       )}
     </div>
   );
-}
+});
 
-export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
+export const FileExplorer = memo(function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
 
   const handleFileSelect = (file: FileItem) => {
@@ -133,16 +133,19 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
     onFileSelect(file);
   };
 
-  // Sort files: folders first, then files, both alphabetically by name
-  const sortedFiles = [...files].sort((a, b) => {
-    // If types are different, folders come first
-    if (a.type !== b.type) {
-      return a.type === 'folder' ? -1 : 1;
-    }
-    
-    // If types are the same, sort alphabetically by name
-    return a.name.localeCompare(b.name);
-  });
+  // Memoize sorted files to prevent unnecessary re-sorting
+  const sortedFiles = useMemo(() => {
+    // Sort files: folders first, then files, both alphabetically by name
+    return [...files].sort((a, b) => {
+      // If types are different, folders come first
+      if (a.type !== b.type) {
+        return a.type === 'folder' ? -1 : 1;
+      }
+      
+      // If types are the same, sort alphabetically by name
+      return a.name.localeCompare(b.name);
+    });
+  }, [files]);
 
   return (
     <ScrollArea className="h-full px-2">
@@ -154,7 +157,7 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
             <p className="text-gray-500 text-xs mt-1">Files will appear as they are created</p>
           </div>
         ) : (
-          <div className="space-y-1">
+          <div className="space-y-0.5 md:space-y-1">
             {sortedFiles.map((file, index) => (
               <FileNode
                 key={`${file.path}-${index}`}
@@ -169,4 +172,4 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
       </div>
     </ScrollArea>
   );
-}
+});

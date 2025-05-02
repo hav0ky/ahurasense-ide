@@ -45,7 +45,7 @@ export function StepsList({ steps, currentStep, onStepClick, compact = false }: 
         {steps.map((step) => (
           <div
             key={step.id}
-            className={`py-1.5 px-2 rounded cursor-pointer transition-all hover:bg-gray-700/30 ${
+            className={`py-1 md:py-1.5 px-1.5 md:px-2 rounded cursor-pointer transition-all hover:bg-gray-700/30 ${
               currentStep === step.id
                 ? 'bg-gray-700/40 border border-gray-700/50 shadow-sm'
                 : 'bg-gray-800/20 border border-transparent'
@@ -65,7 +65,7 @@ export function StepsList({ steps, currentStep, onStepClick, compact = false }: 
               
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-1 flex-wrap">
-                  <h3 className="font-medium text-gray-100 text-xs truncate">{step.title}</h3>
+                  <h3 className="font-medium text-gray-100 text-[10px] md:text-xs truncate">{step.title}</h3>
                   {!compact && (
                     <>
                       <div className={`text-[10px] px-1.5 rounded-full ${getStatusBadgeColor(step.status)}`}>

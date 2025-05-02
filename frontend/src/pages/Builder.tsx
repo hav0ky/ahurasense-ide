@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useCallback, useMemo } from 'react';
 import { useLocation } from 'react-router-dom';
 import { StepsList } from '../components/StepsList';
 import { FileExplorer } from '../components/FileExplorer';
@@ -13,7 +13,8 @@ import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
 import { createAndDownloadZip } from '../utils/zipUtils';
-import { Download } from 'lucide-react';
+import { Download, PanelLeft } from 'lucide-react';
+import { Button } from '../components/ui/button';
 
 const MOCK_FILE_CONTENT = `// This is a sample file content
 import React from 'react';
@@ -37,7 +38,7 @@ export function Builder() {
   const [activeTab, setActiveTab] = useState<'code' | 'preview'>('code');
   const [selectedFile, setSelectedFile] = useState<FileItem | null>(null);
   const [showSteps, setShowSteps] = useState(true);
-  const [compactSteps, setCompactSteps] = useState(true);
+  // Always use compact steps
 
   const [steps, setSteps] = useState<Step[]>([]);
 
@@ -202,56 +203,55 @@ export function Builder() {
     init();
   }, [])
 
+  // Memoize callbacks
+  const handleSetCurrentStep = useCallback((step: number) => {
+    setCurrentStep(step);
+  }, []);
+
+  const handleSetActiveTab = useCallback((tab: 'code' | 'preview') => {
+    setActiveTab(tab);
+  }, []);
+
+  const handleSetSelectedFile = useCallback((file: FileItem) => {
+    setSelectedFile(file);
+  }, []);
+
+  const toggleStepsSidebar = useCallback(() => {
+    setShowSteps(prev => !prev);
+  }, []);
+
   return (
-    <div className="min-h-screen bg-gradient-to-b from-gray-900 to-gray-950 flex flex-col">
-      <header className="bg-gray-800/50 backdrop-blur-sm border-b border-gray-700/50 px-6 py-4 sticky top-0 z-10">
+    <div className="min-h-screen bg-[#0e1015] flex flex-col">
+      <header className="bg-[#12141c]/80 backdrop-blur-md border-b border-[#21242e] px-4 md:px-6 py-3 sticky top-0 z-10">
         <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-100">Website Builder</h1>
-            <p className="text-sm text-gray-400 mt-1 max-w-lg truncate">Prompt: {prompt}</p>
+            <h1 className="text-base md:text-lg font-semibold text-gray-100">Website Builder</h1>
+            <p className="text-[10px] md:text-xs text-gray-400 mt-0.5 max-w-[180px] md:max-w-lg truncate">Prompt: {prompt}</p>
           </div>
-          <div className="flex items-center space-x-4">
-            <button
-              onClick={() => setCompactSteps(!compactSteps)}
-              className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
-              title={compactSteps ? "Show detailed steps" : "Show compact steps"}
+          <div className="md:hidden">
+            <Button
+              onClick={toggleStepsSidebar}
+              variant="ghost"
+              size="icon"
+              className="h-8 w-8 rounded-md text-gray-400 hover:text-gray-100 hover:bg-gray-800"
+              title="Toggle sidebar"
             >
-              {compactSteps ? "Detailed Steps" : "Compact Steps"}
-            </button>
-            <button
-              onClick={() => setShowSteps(!showSteps)}
-              className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
-              title={showSteps ? "Hide build steps" : "Show build steps"}
-            >
-              {showSteps ? "Hide Steps" : "Show Steps"}
-            </button>
-            <span className="text-xs text-gray-400">
-              {webcontainer ?
-                <span className="flex items-center text-emerald-400">
-                  <span className="inline-block h-2 w-2 rounded-full bg-emerald-400 mr-2 animate-pulse"></span>
-                  Environment Ready
-                </span>
-                :
-                <span className="flex items-center text-yellow-400">
-                  <span className="inline-block h-2 w-2 rounded-full bg-yellow-400 mr-2 animate-pulse"></span>
-                  Initializing...
-                </span>
-              }
-            </span>
+              <PanelLeft className="h-4 w-4" />
+            </Button>
           </div>
         </div>
       </header>
 
-      <div className="flex-1 overflow-hidden max-w-screen-2xl mx-auto w-full">
-        <div className={`h-full grid ${showSteps ? 'grid-cols-12' : 'grid-cols-10'} gap-6 p-6`}>
+      <div className="flex-1 overflow-y-auto overflow-x-hidden max-w-screen-2xl mx-auto w-full">
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 py-3 md:py-6">
           {/* Left sidebar - Steps */}
           {showSteps && (
-            <div className="col-span-3 space-y-4">
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl overflow-hidden h-[calc(75vh-2rem)]">
-                <div className="p-3 border-b border-gray-700/50 flex items-center justify-between">
-                  <h2 className="text-lg font-semibold text-gray-100 flex items-center">
-                    <span className="bg-indigo-500/20 text-indigo-400 p-1 rounded mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="col-span-1 md:col-span-3 space-y-4">
+              <div className="bg-[#12141c]/80 backdrop-blur-sm rounded-lg border border-[#21242e] shadow-lg overflow-hidden h-[300px] md:h-[calc(75vh-2rem)]">
+                <div className="px-3 py-2.5 border-b border-[#21242e] flex items-center justify-between">
+                  <h2 className="text-sm font-medium text-gray-200 flex items-center">
+                    <span className="bg-indigo-500/10 text-indigo-400 p-1 rounded mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M8 6h10"></path>
                         <path d="M6 12h9"></path>
                         <path d="M4 18h8"></path>
@@ -261,38 +261,40 @@ export function Builder() {
                   </h2>
                 </div>
 
-                <div className="overflow-y-auto h-[calc(100%-3.75rem)]">
+                <div className="overflow-y-auto h-[calc(100%-2.75rem)]">
                   <StepsList
                     steps={steps}
                     currentStep={currentStep}
-                    onStepClick={setCurrentStep}
-                    compact={compactSteps}
+                    onStepClick={handleSetCurrentStep}
+                    compact={true}
                   />
                 </div>
               </div>
 
-              <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl p-4">
+              <div className="bg-[#12141c]/80 backdrop-blur-sm rounded-lg border border-[#21242e] shadow-lg p-3">
                 {(loading || !templateSet) ? (
-                  <div className="flex items-center justify-center py-6">
+                  <div className="flex items-center justify-center py-4">
                     <Loader />
                   </div>
                 ) : (
-                  <div className="space-y-3">
+                  <div className="space-y-2.5">
                     <div className="flex items-center">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400 mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-indigo-400 mr-2">
                         <path d="M12 2v20"></path>
                         <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path>
                       </svg>
-                      <h3 className="text-sm font-medium text-gray-200">Additional Instructions</h3>
+                      <h3 className="text-xs font-medium text-gray-300">Additional Instructions</h3>
                     </div>
                     <textarea
                       value={userPrompt}
                       onChange={(e) => setPrompt(e.target.value)}
-                      className="w-full h-20 bg-gray-900/50 text-gray-200 border border-gray-700/50 rounded-lg p-3 text-sm focus:ring-2 focus:ring-indigo-500 focus:border-transparent resize-none"
+                      className="w-full h-20 bg-[#161923]/80 text-gray-200 border border-[#21242e] rounded text-xs p-2.5 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500 resize-none"
                       placeholder="Add more instructions or modifications..."
                     />
                     <button
                       onClick={async () => {
+                        if (!userPrompt.trim()) return;
+
                         const newMessage = {
                           role: "user" as "user",
                           content: userPrompt
@@ -323,9 +325,10 @@ export function Builder() {
                         });
                         setPrompt("");
                       }}
-                      className="w-full bg-gradient-to-r from-indigo-600 to-blue-600 hover:from-indigo-700 hover:to-blue-700 text-white font-medium py-2 px-4 rounded-lg flex justify-center items-center space-x-2 transition-all"
+                      className="w-full bg-gradient-to-r from-indigo-600 to-blue-500 hover:from-indigo-700 hover:to-blue-600 text-white text-xs font-medium py-1.5 px-3 rounded flex justify-center items-center space-x-1.5 transition-colors disabled:opacity-50"
+                      disabled={!userPrompt.trim()}
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="m22 2-7 20-4-9-9-4Z"></path>
                         <path d="M22 2 11 13"></path>
                       </svg>
@@ -338,13 +341,13 @@ export function Builder() {
           )}
 
           {/* Middle - File Explorer */}
-          <div className={showSteps ? "col-span-2" : "col-span-3"}>
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl h-[calc(100vh-8rem)] overflow-hidden">
-              <div className="p-4 border-b border-gray-700/50">
+          <div className={showSteps ? "col-span-1 md:col-span-2" : "col-span-1 md:col-span-4"}>
+            <div className="bg-[#12141c]/80 backdrop-blur-sm rounded-lg border border-[#21242e] shadow-lg h-[250px] md:h-[calc(100vh-8rem)] overflow-hidden">
+              <div className="px-3 py-2.5 border-b border-[#21242e]">
                 <div className="flex justify-between items-center">
-                  <h2 className="text-lg font-semibold text-gray-100 flex items-center">
-                    <span className="bg-blue-500/20 text-blue-400 p-1 rounded mr-2">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <h2 className="text-sm font-medium text-gray-200 flex items-center">
+                    <span className="bg-blue-500/10 text-blue-400 p-1 rounded mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M3 6h18"></path>
                         <path d="M20.2 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
                         <path d="M20 8v2"></path>
@@ -358,33 +361,38 @@ export function Builder() {
                     </span>
                     Project Files
                   </h2>
-                  
+
                   {files.length > 0 && (
                     <button
                       onClick={() => createAndDownloadZip(files, 'website-project')}
-                      className="flex items-center gap-1 text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 py-1 px-2 rounded transition-colors"
+                      className="flex items-center gap-1 text-xs bg-blue-500/10 hover:bg-blue-500/15 text-blue-400 hover:text-blue-300 py-1 px-2 rounded transition-colors"
                       title="Download project files as ZIP"
                     >
-                      <Download className="w-3.5 h-3.5" />
-                      <span>Download</span>
+                      <Download className="w-3 h-3" />
+                      <span className="text-xs">Download</span>
                     </button>
                   )}
                 </div>
               </div>
-              <div className="overflow-y-auto h-[calc(100%-4rem)]">
+              <div className="overflow-y-auto h-[calc(100%-2.75rem)]">
                 <FileExplorer
                   files={files}
-                  onFileSelect={setSelectedFile}
+                  onFileSelect={handleSetSelectedFile}
                 />
               </div>
             </div>
           </div>
 
           {/* Right - Code Editor/Preview */}
-          <div className={showSteps ? "col-span-7" : "col-span-7"}>
-            <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl h-[calc(100vh-8rem)] overflow-hidden flex flex-col">
-              <div className="p-4 border-b border-gray-700/50">
-                <TabView activeTab={activeTab} onTabChange={setActiveTab} />
+          <div className={showSteps ? "col-span-1 md:col-span-7" : "col-span-1 md:col-span-8"}>
+            <div className="bg-[#12141c]/80 backdrop-blur-sm rounded-lg border border-[#21242e] shadow-lg h-[300px] md:h-[calc(100vh-8rem)] overflow-hidden flex flex-col">
+              <div className="px-3 py-2.5 border-b border-[#21242e]">
+                <TabView
+                  activeTab={activeTab}
+                  onTabChange={handleSetActiveTab}
+                  webcontainerReady={!!webcontainer}
+                  toggleSteps={toggleStepsSidebar}
+                />
               </div>
               <div className="flex-1 overflow-hidden">
                 {activeTab === 'code' ? (

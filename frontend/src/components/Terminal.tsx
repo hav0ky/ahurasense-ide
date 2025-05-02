@@ -85,14 +85,34 @@ export function Terminal({
             <div className="text-gray-500 italic">No logs to display</div>
           ) : (
             logs.map((log, index) => {
+              // Skip rendering empty logs or spinner indicators
+              if (!log.trim() || /^[\s\/|\\-]+$/.test(log)) {
+                return null;
+              }
+              
               // Determine log type by content for styling
               const isError = log.toLowerCase().includes('error') || 
                              log.toLowerCase().includes('fail') ||
-                             log.startsWith('npm ERR');
-              const isWarning = log.toLowerCase().includes('warn');
+                             log.toLowerCase().includes('err!') ||
+                             log.toLowerCase().includes('missing');
+                             
+              const isWarning = log.toLowerCase().includes('warn') ||
+                               log.toLowerCase().includes('deprecated');
+                               
               const isSuccess = log.toLowerCase().includes('success') || 
-                               log.includes('server started');
-
+                               log.toLowerCase().includes('ready') ||
+                               log.toLowerCase().includes('done') ||
+                               log.toLowerCase().includes('server started') ||
+                               (log.toLowerCase().includes('added') && log.toLowerCase().includes('packages')) ||
+                               log.toLowerCase().includes('local:');
+              
+              // Special styling for npm package installation summaries
+              const isPackageSummary = log.includes('node_modules/') || 
+                                      /\d+\.\d+\.\d+/.test(log); // Has a version number
+              
+              // Special styling for commands
+              const isCommand = log.startsWith('$');
+              
               return (
                 <div 
                   key={index}
@@ -103,7 +123,11 @@ export function Terminal({
                         ? 'text-yellow-400'
                         : isSuccess
                           ? 'text-green-400'
-                          : 'text-gray-300'
+                          : isCommand
+                            ? 'text-blue-400 font-bold'
+                            : isPackageSummary
+                              ? 'text-gray-500 text-xs'
+                              : 'text-gray-300'
                   }`}
                 >
                   {log}

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, memo } from 'react';
 import Editor from '@monaco-editor/react';
 import { FileItem } from '../types';
 import { Loader } from './Loader';
@@ -8,7 +8,7 @@ interface CodeEditorProps {
   file: FileItem | null;
 }
 
-export function CodeEditor({ file }: CodeEditorProps) {
+export const CodeEditor = memo(function CodeEditor({ file }: CodeEditorProps) {
   const [language, setLanguage] = useState<string>('typescript');
   const [isEditorReady, setIsEditorReady] = useState(false);
 
@@ -114,4 +114,4 @@ export function CodeEditor({ file }: CodeEditorProps) {
       </div>
     </div>
   );
-}
+});
