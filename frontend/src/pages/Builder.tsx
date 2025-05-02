@@ -209,14 +209,14 @@ export function Builder() {
             <p className="text-sm text-gray-400 mt-1 max-w-lg truncate">Prompt: {prompt}</p>
           </div>
           <div className="flex items-center space-x-4">
-            <button 
+            <button
               onClick={() => setCompactSteps(!compactSteps)}
               className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
               title={compactSteps ? "Show detailed steps" : "Show compact steps"}
             >
               {compactSteps ? "Detailed Steps" : "Compact Steps"}
             </button>
-            <button 
+            <button
               onClick={() => setShowSteps(!showSteps)}
               className="text-xs bg-gray-700/50 hover:bg-gray-700/70 text-gray-300 hover:text-gray-100 py-1 px-2 rounded transition-colors"
               title={showSteps ? "Hide build steps" : "Show build steps"}
@@ -375,7 +375,10 @@ export function Builder() {
                 {activeTab === 'code' ? (
                   <CodeEditor file={selectedFile} />
                 ) : (
-                  <PreviewFrame webContainer={webcontainer!} files={files} />
+                  <PreviewFrame
+                    webContainer={webcontainer!}
+                    files={files}
+                  />
                 )}
               </div>
             </div>
@@ -383,5 +386,6 @@ export function Builder() {
         </div>
       </div>
     </div>
+
   );
 }

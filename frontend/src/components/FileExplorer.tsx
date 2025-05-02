@@ -99,15 +99,26 @@ function FileNode({ item, depth, onFileClick, isSelected = false }: FileNodeProp
       
       {item.type === 'folder' && isExpanded && item.children && (
         <div className="ml-1">
-          {item.children.map((child, index) => (
-            <FileNode
-              key={`${child.path}-${index}`}
-              item={child}
-              depth={depth + 1}
-              onFileClick={onFileClick}
-              isSelected={false} // We only track selected files, not folders
-            />
-          ))}
+          {/* Sort children: folders first, then files, both alphabetically */}
+          {[...item.children]
+            .sort((a, b) => {
+              // If types are different, folders come first
+              if (a.type !== b.type) {
+                return a.type === 'folder' ? -1 : 1;
+              }
+              // If types are the same, sort alphabetically by name
+              return a.name.localeCompare(b.name);
+            })
+            .map((child, index) => (
+              <FileNode
+                key={`${child.path}-${index}`}
+                item={child}
+                depth={depth + 1}
+                onFileClick={onFileClick}
+                isSelected={false} // We only track selected files, not folders
+              />
+            ))
+          }
         </div>
       )}
     </div>
@@ -122,6 +133,17 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
     onFileSelect(file);
   };
 
+  // Sort files: folders first, then files, both alphabetically by name
+  const sortedFiles = [...files].sort((a, b) => {
+    // If types are different, folders come first
+    if (a.type !== b.type) {
+      return a.type === 'folder' ? -1 : 1;
+    }
+    
+    // If types are the same, sort alphabetically by name
+    return a.name.localeCompare(b.name);
+  });
+
   return (
     <ScrollArea className="h-full px-2">
       <div className="py-2">
@@ -133,7 +155,7 @@ export function FileExplorer({ files, onFileSelect }: FileExplorerProps) {
           </div>
         ) : (
           <div className="space-y-1">
-            {files.map((file, index) => (
+            {sortedFiles.map((file, index) => (
               <FileNode
                 key={`${file.path}-${index}`}
                 item={file}
