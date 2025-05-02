@@ -38,12 +38,12 @@ export function TabView({ activeTab, onTabChange, webcontainerReady, toggleSteps
           {webcontainerReady ? (
             <div className="flex items-center bg-emerald-500/15 text-emerald-400 py-1 px-2 rounded-md text-xs">
               <span className="inline mr-1">Ready</span>
-              <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse"></span>
+              {/* <span className="h-1.5 w-1.5 bg-emerald-400 rounded-full animate-pulse"></span> */}
             </div>
           ) : (
             <div className="flex items-center bg-amber-500/15 text-amber-400 py-1 px-2 rounded-md text-xs">
               <span className="inline mr-1">Loading</span>
-              <span className="h-1.5 w-1.5 bg-amber-400 rounded-full animate-pulse"></span>
+              {/* <span className="h-1.5 w-1.5 bg-amber-400 rounded-full animate-pulse"></span> */}
             </div>
           )}
         </div>
@@ -60,7 +60,7 @@ export function TabView({ activeTab, onTabChange, webcontainerReady, toggleSteps
         {/* Toggle steps button - hidden on mobile, shown on desktop */}
         <Button
           onClick={toggleSteps}
-          variant="ghost" 
+          variant="ghost"
           size="icon"
           className="hidden md:flex h-8 w-8 rounded-md text-gray-400 hover:text-gray-100 hover:bg-gray-800"
           title="Toggle sidebar"
