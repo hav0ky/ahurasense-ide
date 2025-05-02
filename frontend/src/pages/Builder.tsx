@@ -12,6 +12,8 @@ import { parseXml } from '../steps';
 import { useWebContainer } from '../hooks/useWebContainer';
 import { FileNode } from '@webcontainer/api';
 import { Loader } from '../components/Loader';
+import { createAndDownloadZip } from '../utils/zipUtils';
+import { Download } from 'lucide-react';
 
 const MOCK_FILE_CONTENT = `// This is a sample file content
 import React from 'react';
@@ -339,22 +341,35 @@ export function Builder() {
           <div className={showSteps ? "col-span-2" : "col-span-3"}>
             <div className="bg-gray-800/30 backdrop-blur-sm rounded-xl border border-gray-700/50 shadow-xl h-[calc(100vh-8rem)] overflow-hidden">
               <div className="p-4 border-b border-gray-700/50">
-                <h2 className="text-lg font-semibold text-gray-100 flex items-center">
-                  <span className="bg-blue-500/20 text-blue-400 p-1 rounded mr-2">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M3 6h18"></path>
-                      <path d="M20.2 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
-                      <path d="M20 8v2"></path>
-                      <path d="M3 10v4c0 1.1.9 2 2 2h3"></path>
-                      <path d="M3 18v4"></path>
-                      <path d="M16 18h1"></path>
-                      <path d="M20 18v4"></path>
-                      <path d="M3 14h3"></path>
-                      <path d="M11 14h4"></path>
-                    </svg>
-                  </span>
-                  Project Files
-                </h2>
+                <div className="flex justify-between items-center">
+                  <h2 className="text-lg font-semibold text-gray-100 flex items-center">
+                    <span className="bg-blue-500/20 text-blue-400 p-1 rounded mr-2">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M3 6h18"></path>
+                        <path d="M20.2 17a3 3 0 1 0 0-6 3 3 0 0 0 0 6Z"></path>
+                        <path d="M20 8v2"></path>
+                        <path d="M3 10v4c0 1.1.9 2 2 2h3"></path>
+                        <path d="M3 18v4"></path>
+                        <path d="M16 18h1"></path>
+                        <path d="M20 18v4"></path>
+                        <path d="M3 14h3"></path>
+                        <path d="M11 14h4"></path>
+                      </svg>
+                    </span>
+                    Project Files
+                  </h2>
+                  
+                  {files.length > 0 && (
+                    <button
+                      onClick={() => createAndDownloadZip(files, 'website-project')}
+                      className="flex items-center gap-1 text-xs bg-blue-600/20 hover:bg-blue-600/30 text-blue-400 hover:text-blue-300 py-1 px-2 rounded transition-colors"
+                      title="Download project files as ZIP"
+                    >
+                      <Download className="w-3.5 h-3.5" />
+                      <span>Download</span>
+                    </button>
+                  )}
+                </div>
               </div>
               <div className="overflow-y-auto h-[calc(100%-4rem)]">
                 <FileExplorer
