@@ -223,7 +223,7 @@ export function Builder() {
   return (
     <div className="min-h-screen bg-[#0e1015] flex flex-col">
       <header className="bg-[#12141c]/80 backdrop-blur-md border-b border-[#21242e] px-4 md:px-6 py-3 sticky top-0 z-10">
-        <div className="max-w-screen-2xl mx-auto flex items-center justify-between">
+        <div className="flex items-center justify-between">
           <div>
             <h1 className="text-base md:text-lg font-semibold text-gray-100">Website Builder</h1>
             <p className="text-[10px] md:text-xs text-gray-400 mt-0.5 max-w-[180px] md:max-w-lg truncate">Prompt: {prompt}</p>
@@ -242,7 +242,7 @@ export function Builder() {
         </div>
       </header>
 
-      <div className="flex-1 overflow-y-auto overflow-x-hidden max-w-screen-2xl mx-auto w-full">
+      <div className="flex-1 overflow-y-auto overflow-x-hidden w-full px-4 md:px-6 ">
         <div className="grid grid-cols-1 md:grid-cols-12 gap-3 md:gap-6 py-3 md:py-6">
           {/* Left sidebar - Steps */}
           {showSteps && (
