@@ -105,7 +105,7 @@ export function Builder() {
 
       }))
     }
-    console.log(files);
+    // console.log(files);
   }, [steps, files]);
 
   useEffect(() => {
@@ -151,7 +151,7 @@ export function Builder() {
     const mountStructure = createMountStructure(files);
 
     // Mount the structure if WebContainer is available
-    console.log(mountStructure);
+    // console.log(mountStructure);
     webcontainer?.mount(mountStructure);
   }, [files, webcontainer]);
 
