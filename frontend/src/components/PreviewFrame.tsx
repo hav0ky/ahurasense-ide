@@ -20,7 +20,7 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
     setLogs(prevLogs => {
       // Create a working copy
       const newLogs = [...prevLogs];
-      
+
       // Process the log
       const cleanLog = log
         // Remove ANSI color/style codes (more comprehensive)
@@ -28,9 +28,9 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
         // Remove other ANSI sequences
         .replace(/\x1b\].*?\x07/g, '')
         .trim();
-      
+
       if (!cleanLog) return prevLogs;
-      
+
       // Handle carriage returns properly (for progress indicators)
       if (cleanLog.includes('\r') && !cleanLog.includes('\n')) {
         // This is a progress indicator like [===>   ] updating in place
@@ -44,17 +44,17 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
           return newLogs;
         }
       }
-      
+
       // Handle different line ending scenarios
       const lines = cleanLog
         .split(/\r\n|\n/)
         .filter(line => line.trim() !== '');
-      
+
       // Filter out typical progress indicators (like / - \ |) when shown alone
-      const filteredLines = lines.filter(line => 
+      const filteredLines = lines.filter(line =>
         !/^[\/|\\-]$/.test(line.trim())
       );
-      
+
       // Add new lines to logs
       return [...newLogs, ...filteredLines];
     });
@@ -129,7 +129,7 @@ export function PreviewFrame({ files, webContainer }: PreviewFrameProps) {
             height="100%"
             src={url}
             title="Preview"
-            sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
+            // sandbox="allow-forms allow-modals allow-pointer-lock allow-popups allow-same-origin allow-scripts allow-top-navigation-by-user-activation"
             allow="accelerometer; camera; encrypted-media; geolocation; gyroscope; microphone; midi"
           />
         )}
