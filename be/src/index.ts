@@ -3,18 +3,31 @@ import express from "express";
 import Anthropic from "@anthropic-ai/sdk";
 import { BASE_PROMPT, getSystemPrompt } from "./prompts";
 import { ContentBlock, TextBlock } from "@anthropic-ai/sdk/resources";
-import {basePrompt as nodeBasePrompt} from "./defaults/node";
-import {basePrompt as reactBasePrompt} from "./defaults/react";
+import { basePrompt as nodeBasePrompt } from "./defaults/node";
+import { basePrompt as reactBasePrompt } from "./defaults/react";
 import cors from "cors";
 
 const anthropic = new Anthropic();
 const app = express();
-app.use(cors())
+
+// Configure CORS with proper headers for SharedArrayBuffer
+app.use(cors({
+    origin: true, // Allow request origin
+    credentials: true // Allow credentials
+}));
+
+// Add Cross-Origin-Isolation headers required for SharedArrayBuffer
+app.use((req, res, next) => {
+    res.setHeader('Cross-Origin-Opener-Policy', 'same-origin');
+    res.setHeader('Cross-Origin-Embedder-Policy', 'require-corp');
+    next();
+});
+
 app.use(express.json())
 
 app.post("/template", async (req, res) => {
     const prompt = req.body.prompt;
-    
+
     const response = await anthropic.messages.create({
         messages: [{
             role: 'user', content: prompt
@@ -41,7 +54,7 @@ app.post("/template", async (req, res) => {
         return;
     }
 
-    res.status(403).json({message: "You cant access this"})
+    res.status(403).json({ message: "You cant access this" })
     return;
 
 })
